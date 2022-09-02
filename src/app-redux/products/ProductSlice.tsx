@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { ICartItem, IProductItem } from "../../comon/typings/products";
 
 import { RootState } from "../store";
@@ -9,12 +9,14 @@ interface ProductState {
   products: IProductItem[];
   allProducts: IProductItem[];
   cart:ICartItem[];
+  cartTotal:number;
 }
 const initialState: ProductState = {
   status: 'idle',
   products: [],
   allProducts: [],
-  cart:[]
+  cart:[],
+  cartTotal:0,
 };
 
 export const productSlice = createSlice({
@@ -28,6 +30,11 @@ export const productSlice = createSlice({
         } else {
             state.cart.push({ ...action.payload, quantity: 1 });
         }
+        let total=0;
+        state.cart.map((item:any) => {
+          total+=item.price*item.quantity;
+        });
+        state.cartTotal=total;
     },
     decrementCart: (state: ProductState,action:any) => {
       console.log(action,action.payload)
@@ -36,32 +43,42 @@ export const productSlice = createSlice({
         const removeItem = state.cart.filter((item:ICartItem) => item.id !== action.payload.id);
         state.cart = removeItem;
       }else item.quantity--;
+      let total=0;
+      state.cart.map((item:any) => {
+        total+=item.price*item.quantity;
+      });
+      state.cartTotal=total;
       
     },
     removeFromCart: (state:ProductState, action:any) => {
         const removeItem = state.cart.filter((item:ICartItem) => item.id !== action.payload.id);
         state.cart = removeItem;
-      },
+        let total=0;
+        state.cart.map((item:any) => {
+          total+=item.price*item.quantity;
+        });
+        state.cartTotal=total;
+    },
     filterProducts: (state:ProductState, action:any) => {
-        const filterData = state.allProducts.filter((item:IProductItem) => item.colour == action.payload);
+        const filterData = state.allProducts.filter((item:IProductItem) => item.colour === action.payload);
         if(filterData.length!==0) state.products = filterData;
         else state.products = state.allProducts;
-      },
+    }
     
   },
-  extraReducers: (builder) => {
+  extraReducers: (builder:any) => {
     // handle Asynchronous Calls
     // Get getProductsListing methods
-    builder.addCase(getProductsListing.pending, (state) => {
+    builder.addCase(getProductsListing.pending, (state:ProductState) => {
       state.status = 'loading';
     });
-    builder.addCase(getProductsListing.rejected, (state) => {
+    builder.addCase(getProductsListing.rejected, (state:ProductState) => {
       state.status = 'failed';
     });
-    builder.addCase(getProductsListing.fulfilled, (state, { payload }) => {
+    builder.addCase(getProductsListing.fulfilled, (state:ProductState, action:any) => {
       state.status = 'idle';
-      state.products = payload;
-      state.allProducts = payload;
+      state.products = action.payload;
+      state.allProducts = action.payload;
     });
     // ./getProductsListing methods
     
@@ -72,4 +89,5 @@ export const productSlice = createSlice({
 export const { addToCart, decrementCart ,removeFromCart,filterProducts} = productSlice.actions; 
 export const selectProducts = (state: RootState) => state.products.products;
 export const selectCart = (state: RootState) => state.products.cart;
+export const selectCartTotal = (state: RootState) => state.products.cartTotal;
 
