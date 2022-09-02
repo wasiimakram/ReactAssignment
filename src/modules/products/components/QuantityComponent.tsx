@@ -10,8 +10,7 @@ export default function QuantityComponent (props: IQuantityProps) {
   const cart = useAppSelector(selectCart);
   const [quantity, setQuantity] = useState<number>(0);
   useEffect(() => {
-   
-    let quantity=0;
+   let quantity=0;
     if(cart) 
     {
         cart.map((item:any)=>{if(item.id==props.itemRecord.id ) quantity=item.quantity;})
